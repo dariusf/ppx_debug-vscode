@@ -128,14 +128,14 @@
     ],
     "breakpoints": [
       {
-        "language": "markdown"
+        "language": "ocaml"
       }
     ],
     "debuggers": [
       {
         "type": "mock",
         "languages": [
-          "markdown"
+          "ocaml"
         ],
         "label": "Mock Debug",
         "program": "./out/debugAdapter.js",
