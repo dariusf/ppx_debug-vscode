@@ -89,6 +89,87 @@ export function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const future1 = vscode.window.createTextEditorDecorationType({
+	// borderWidth: '1px',
+	// borderStyle: 'solid',
+	// overviewRulerColor: 'blue',
+	// overviewRulerLane: vscode.OverviewRulerLane.Right,
+	backgroundColor: { id: 'list.focusBackground' },
+			// 'red',
+	after: {
+		// contentText: 'next',
+		contentText: ' ↓',
+		fontWeight: '8px',
+		color: { id: 'editorCodeLens.foreground' },
+		// color: { id: 'debugView.valueChangedHighlight' },
+		// color: { id: 'peekViewResult.matchHighlightBackground' },
+		// contentIconPath: '$(debug-step-into)',
+	},
+	// light: {
+	// 	// this color will be used in light color themes
+	// 	borderColor: 'darkblue'
+	// },
+	// dark: {
+	// 	// this color will be used in dark color themes
+	// 	borderColor: 'lightblue'
+	// }
+});
+
+const sibling1 = vscode.window.createTextEditorDecorationType({
+	// borderWidth: '1px',
+	// borderStyle: 'solid',
+	// overviewRulerColor: 'blue',
+	// overviewRulerLane: vscode.OverviewRulerLane.Right,
+	backgroundColor: { id: 'list.activeSelectionBackground' },
+			// 'red',
+	// { id: 'list.filterMatchBackground' }
+	// { id: 'list.dropBackground' }
+	after: {
+		contentText: ' →',
+		// contentText: 'sibling',
+		fontWeight: '8px',
+		color: { id: 'editorCodeLens.foreground' },
+		// color: { id: 'debugView.valueChangedHighlight' },
+		// color: { id: 'peekViewResult.matchHighlightBackground' },
+		// contentIconPath: 'debug-step-over',
+	},
+	// light: {
+	// 	// this color will be used in light color themes
+	// 	borderColor: 'darkblue'
+	// },
+	// dark: {
+	// 	// this color will be used in dark color themes
+	// 	borderColor: 'lightblue'
+	// }
+});
+
+const past1 = vscode.window.createTextEditorDecorationType({
+	// borderWidth: '1px',
+	// borderStyle: 'solid',
+	// overviewRulerColor: 'blue',
+	// overviewRulerLane: vscode.OverviewRulerLane.Right,
+	backgroundColor: { id: 'listFilterWidget.background' },
+			// 'red',
+	after: {
+		// contentText: 'prev',
+		contentText: ' ↑',
+		fontWeight: '8px',
+		color: { id: 'editorCodeLens.foreground' },
+		// color: { id: 'debugView.valueChangedHighlight' },
+		// color: { id: 'peekViewResult.matchHighlightBackground' },
+		// contentIconPath: 'debug-step-out',
+	},
+	// light: {
+	// 	// this color will be used in light color themes
+	// 	borderColor: 'darkblue'
+	// },
+	// dark: {
+	// 	// this color will be used in dark color themes
+	// 	borderColor: 'lightblue'
+	// }
+});
+
+
 /**
  * A Mock runtime with minimal debugger functionality.
  * MockRuntime is a hypothetical (aka "Mock") "execution engine with debugging support":
@@ -203,7 +284,7 @@ export class MockRuntime extends EventEmitter {
     // await this.loadSource(this.normalizePathAndCasing(program));
 
     if (debug) {
-      console.log(this.rawData.nodes[1].id.file);
+      // console.log(this.rawData.nodes[1].id.file);
       await this.verifyBreakpoints(
         this.workspace + this.rawData.nodes[1].id.file
       );
@@ -223,12 +304,16 @@ export class MockRuntime extends EventEmitter {
 	 * Continue execution to the end/beginning.
 	 */
 	public continue(reverse: boolean) {
+		// reverse execution is handled here
     while (!this.executeLine(0, reverse)) {
       // if (this.updateCurrentLine(reverse)) {
       //   break;
       // }
       if (this.findNextStatement(reverse)) {
-        this.sendEvent("end");
+				// never end. so when we hit the end/beginning of the program, we just stay there
+				// if (!reverse) {
+				// 	this.sendEvent("end");
+				// }
         break;
       }
     }
@@ -242,6 +327,7 @@ export class MockRuntime extends EventEmitter {
 
     // if (instruction) {
 
+		// handles step back
     let sib: number;
     if (reverse) {
       sib = this.rawData.edges[this.instruction].prev_sibling;
@@ -255,6 +341,7 @@ export class MockRuntime extends EventEmitter {
       this.instruction = sib;
     }
     this.sendEvent("stopOnStep");
+		this.highlight();
 
     // } else {
     //   if (!this.executeLine(reverse)) {
@@ -289,6 +376,54 @@ export class MockRuntime extends EventEmitter {
 	// 	return false;
 	// }
 
+	public highlight() {
+		let editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return;
+		};
+
+		let decorated: number[] = [];
+
+		// next line
+		let node = this.rawData.nodes[this.instruction + 1];
+		if (this.instruction < this.rawData.last && node) {
+			let line = editor.document.lineAt(node.id.line-1);
+			let dec = {
+				range: line.range,
+				hoverMessage: "next"
+			};
+			editor.setDecorations(future1, [dec]);
+			decorated.push(node.id.line);
+		} else {
+			editor.setDecorations(future1, []);
+		}
+
+		node = this.rawData.nodes[this.instruction - 1];
+		if (this.instruction > 1 && node && decorated.indexOf(node.id.line) === -1) {
+			let line = editor.document.lineAt(node.id.line-1);
+			let dec = {
+				range: line.range,
+				hoverMessage: "prev"
+			};
+			editor.setDecorations(past1, [dec]);
+		} else {
+			editor.setDecorations(past1, []);
+		}
+
+		let next_sibling = this.rawData.edges[this.instruction].next_sibling;
+		node = this.rawData.nodes[next_sibling];
+		if (this.instruction < this.rawData.last && node && decorated.indexOf(node.id.line) === -1) {
+			let line = editor.document.lineAt(node.id.line-1);
+			let dec = {
+				range: line.range,
+				hoverMessage: "next sibling"
+			};
+			editor.setDecorations(sibling1, [dec]);
+		} else {
+			editor.setDecorations(sibling1, []);
+		}
+	}
+
 	/**
 	 * "Step into" for Mock debug means: go to next character
 	 */
@@ -308,6 +443,7 @@ export class MockRuntime extends EventEmitter {
 		// }
     this.instruction++;
     this.sendEvent("stopOnStep");
+		this.highlight();
 	}
 
 	/**
@@ -321,9 +457,16 @@ export class MockRuntime extends EventEmitter {
     //   }
     // }
 
-    let next =
-      this.rawData.edges[this.rawData.edges[this.instruction].out].next_sibling;
-    this.instruction = next;
+		// handles step out
+
+		if (this.instruction > 1) {
+			// return;
+			this.instruction--;
+		}
+
+		// let next = this.rawData.edges[this.instruction].out;
+		// next = this.rawData.edges[next].next_sibling;
+    // this.instruction = next;
 
     // if (reverse) {
     // this.instruction--;
@@ -332,7 +475,9 @@ export class MockRuntime extends EventEmitter {
     // this.instruction++;
     // }
 
+
     this.sendEvent("stopOnStep");
+		this.highlight();
 	}
 
 	public getStepInTargets(frameId: number): IRuntimeStepInTargets[] {
@@ -512,7 +657,7 @@ export class MockRuntime extends EventEmitter {
 
 	public getLocalVariables(): RuntimeVariable[] {
 		// return Array.from(this.variables, ([name, value]) => value);
-    let args = this.rawData.nodes[this.instruction].args;
+		let args = this.rawData.nodes[this.instruction].args || {};
     return Object.keys(args).map((k) => new RuntimeVariable(k, args[k]));
 	}
 
@@ -607,7 +752,13 @@ export class MockRuntime extends EventEmitter {
     if (stepEvent) {
       this.sendEvent(stepEvent);
       return true;
-    } else if (this.instruction >= this.rawData.last) {
+    } else if (!reverse && this.instruction >= this.rawData.last) {
+			this.sendEvent("stopOnStep");
+			this.highlight();
+      return true;
+    } else if (reverse && this.instruction <= 1) {
+			this.sendEvent("stopOnStep");
+			this.highlight();
       return true;
     }
     return false;
@@ -657,7 +808,7 @@ export class MockRuntime extends EventEmitter {
 
     // first "execute" the instructions associated with this line and potentially hit instruction breakpoints
     while (
-      reverse ? this.instruction >= 0 : this.instruction <= this.rawData.last
+      reverse ? this.instruction > 1 : this.instruction <= this.rawData.last
     ) {
       reverse ? this.instruction-- : this.instruction++;
       // TODO stop on every line for now
@@ -805,7 +956,7 @@ export class MockRuntime extends EventEmitter {
     if (bps) {
       // await this.loadSource(path);
       bps.forEach((bp) => {
-        if (!bp.verified && this.rawData.breakpoints[bp.line]) {
+        if (!bp.verified && this.rawData && this.rawData.breakpoints[bp.line]) {
           // const srcLine = this.getLine(bp.line);
 
           // if a line is empty or starts with '+' we don't allow to set a breakpoint but move the breakpoint down
