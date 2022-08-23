@@ -24,6 +24,8 @@ import { platform } from 'process';
 import { ProviderResult } from 'vscode';
 import { MockDebugSession } from './mockDebug';
 import { activateMockDebug, workspaceFileAccessor } from './activateMockDebug';
+import * as debugging from './debugging';
+import * as fs from 'fs';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -31,7 +33,70 @@ import { activateMockDebug, workspaceFileAccessor } from './activateMockDebug';
  */
 const runMode: 'external' | 'server' | 'namedPipeServer' | 'inline' = 'inline';
 
+export async function listFiles(dirPath: string, predicate?: (name: string) => boolean): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+        fs.readdir(dirPath, (err, files) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            const result = predicate ? files.filter(predicate) : files;
+            resolve(result);
+        });
+    });
+}
+
+
 export function activate(context: vscode.ExtensionContext) {
+
+	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.nextInstruction", debugging.nextInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.prevInstruction", debugging.prevInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.goToInstruction", debugging.goToInstruction));
+
+	let enableCodeLens = false;
+	if (enableCodeLens) {
+		context.subscriptions.push(
+			vscode.languages.registerCodeLensProvider(
+		// language: 'javascript',
+				{ scheme: 'file' },
+				debugging.codelens));
+	}
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			"extension.mock-debug.loadTrace",
+			async (resource: vscode.Uri) => {
+				let targetResource = resource;
+				if (!targetResource && vscode.window.activeTextEditor) {
+					targetResource = vscode.window.activeTextEditor.document.uri;
+				}
+				let folders = vscode.workspace.workspaceFolders;
+				if (!folders) {
+					await vscode.window.showInformationMessage("no workspace");
+					return;
+				}
+    		let uri = folders[0].uri;
+				let workspace = uri.path + "/";
+
+				if (targetResource) {
+					const configFiles = await listFiles(workspace, (name) => name.endsWith(".json"));
+
+					const cfgFileName = await vscode.window.showQuickPick(
+						configFiles,
+						{ canPickMany: false, placeHolder: 'Select a trace file', matchOnDetail: true });
+
+					if (!cfgFileName) {
+						return;
+					}
+					let editor = vscode.window.activeTextEditor;
+					if (editor) {
+						await debugging.loadRawData(workspaceFileAccessor, workspace, cfgFileName);
+						await debugging.updateView(editor);
+					}
+				}
+			}
+		)
+	);
 
 	// debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:
 	switch (runMode) {

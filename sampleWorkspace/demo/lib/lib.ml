@@ -14,7 +14,7 @@ let rec depth t =
   match t with
   | Leaf _ -> 0
   | Node sub -> List.fold_right (fun c t -> max (depth c) t) sub 0 + 1
-
+  
 let c f = f 1
 let sum xs = List.fold_right (fun c t -> c + t) xs 0
 let rec tail xs acc = match xs with [] -> acc | x :: xs -> tail xs (x + acc)

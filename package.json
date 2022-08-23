@@ -70,12 +70,23 @@
     "onDebugDynamicConfigurations:mock",
     "onCommand:extension.mock-debug.getProgramName",
     "onCommand:extension.mock-debug.runEditorContents",
-    "onCommand:extension.mock-debug.debugEditorContents"
+    "onCommand:extension.mock-debug.debugEditorContents",
+    "onCommand:extension.mock-debug.loadTrace"
   ],
   "workspaceTrust": {
     "request": "never"
   },
   "contributes": {
+    "keybindings":[
+      {
+        "command": "extension.mock-debug.prevInstruction",
+        "key": "shift+alt+cmd+left"
+      },
+      {
+        "command": "extension.mock-debug.nextInstruction",
+        "key": "shift+alt+cmd+right"
+      }
+    ],
     "menus": {
       "editor/title/run": [
         {
@@ -97,6 +108,9 @@
         {
           "command": "extension.mock-debug.runEditorContents",
           "when": "resourceLangId == markdown"
+        },
+        {
+          "command": "extension.mock-debug.loadTrace"
         }
       ],
       "debug/variables/context": [
@@ -124,6 +138,18 @@
       {
         "command": "extension.mock-debug.toggleFormatting",
         "title": "Toggle between decimal and hex formatting"
+      },
+      {
+        "command": "extension.mock-debug.loadTrace",
+        "title": "Load a trace file"
+      },
+      {
+        "command": "extension.mock-debug.nextInstruction",
+        "title": "Next instruction"
+      },
+      {
+        "command": "extension.mock-debug.prevInstruction",
+        "title": "Previous instruction"
       }
     ],
     "breakpoints": [

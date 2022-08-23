@@ -4,6 +4,7 @@
 
 import { EventEmitter } from 'events';
 import * as vscode from "vscode";
+import * as debugging from "./debugging";
 
 export interface FileAccessor {
 	isWindows: boolean;
@@ -88,87 +89,6 @@ interface Word {
 export function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-const future1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
-	backgroundColor: { id: 'list.focusBackground' },
-			// 'red',
-	after: {
-		// contentText: 'next',
-		contentText: ' ↓',
-		fontWeight: '8px',
-		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: '$(debug-step-into)',
-	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
-});
-
-const sibling1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
-	backgroundColor: { id: 'list.activeSelectionBackground' },
-			// 'red',
-	// { id: 'list.filterMatchBackground' }
-	// { id: 'list.dropBackground' }
-	after: {
-		contentText: ' →',
-		// contentText: 'sibling',
-		fontWeight: '8px',
-		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: 'debug-step-over',
-	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
-});
-
-const past1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
-	backgroundColor: { id: 'listFilterWidget.background' },
-			// 'red',
-	after: {
-		// contentText: 'prev',
-		contentText: ' ↑',
-		fontWeight: '8px',
-		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: 'debug-step-out',
-	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
-});
-
 
 /**
  * A Mock runtime with minimal debugger functionality.
@@ -381,47 +301,7 @@ export class MockRuntime extends EventEmitter {
 		if (!editor) {
 			return;
 		};
-
-		let decorated: number[] = [];
-
-		// next line
-		let node = this.rawData.nodes[this.instruction + 1];
-		if (this.instruction < this.rawData.last && node) {
-			let line = editor.document.lineAt(node.id.line-1);
-			let dec = {
-				range: line.range,
-				hoverMessage: "next"
-			};
-			editor.setDecorations(future1, [dec]);
-			decorated.push(node.id.line);
-		} else {
-			editor.setDecorations(future1, []);
-		}
-
-		node = this.rawData.nodes[this.instruction - 1];
-		if (this.instruction > 1 && node && decorated.indexOf(node.id.line) === -1) {
-			let line = editor.document.lineAt(node.id.line-1);
-			let dec = {
-				range: line.range,
-				hoverMessage: "prev"
-			};
-			editor.setDecorations(past1, [dec]);
-		} else {
-			editor.setDecorations(past1, []);
-		}
-
-		let next_sibling = this.rawData.edges[this.instruction].next_sibling;
-		node = this.rawData.nodes[next_sibling];
-		if (this.instruction < this.rawData.last && node && decorated.indexOf(node.id.line) === -1) {
-			let line = editor.document.lineAt(node.id.line-1);
-			let dec = {
-				range: line.range,
-				hoverMessage: "next sibling"
-			};
-			editor.setDecorations(sibling1, [dec]);
-		} else {
-			editor.setDecorations(sibling1, []);
-		}
+		debugging.highlightPrevNext(editor, this.rawData, this.instruction);
 	}
 
 	/**
