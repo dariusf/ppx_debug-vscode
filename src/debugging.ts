@@ -82,6 +82,10 @@ export const past1 = vscode.window.createTextEditorDecorationType({
 	// }
 });
 
+function rangeOfLoc(loc) {
+	const [[sl, sc], [el, ec]] = loc;
+		return new vscode.Range(new vscode.Position(sl-1,sc), new vscode.Position(el-1,ec));
+}
 
 export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instruction: number) {
   let decorated: number[] = [];
@@ -89,9 +93,13 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
   // next line
   let node = rawData.nodes[instruction + 1];
   if (instruction < rawData.last && node) {
-    let line = editor.document.lineAt(node.id.line-1);
+    // let line = editor.document.lineAt(node.id.line-1);
+    // let dec = {
+    //   range: line.range,
+    //   hoverMessage: "next"
+    // };
     let dec = {
-      range: line.range,
+      range: rangeOfLoc(node.id.loc),
       hoverMessage: "next"
     };
     editor.setDecorations(future1, [dec]);
@@ -101,10 +109,12 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
   }
 
   node = rawData.nodes[instruction - 1];
-  if (instruction > 1 && node && decorated.indexOf(node.id.line) === -1) {
-    let line = editor.document.lineAt(node.id.line-1);
+	// let notAlreadyDecorated = decorated.indexOf(node.id.line) === -1;
+	let notAlreadyDecorated = true; // TODO
+  if (instruction > 1 && node && notAlreadyDecorated) {
+    // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
-      range: line.range,
+      range: rangeOfLoc(node.id.loc),
       hoverMessage: "prev"
     };
     editor.setDecorations(past1, [dec]);
@@ -114,10 +124,12 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
 
   let next_sibling = rawData.edges[instruction].next_sibling;
   node = rawData.nodes[next_sibling];
-  if (instruction < rawData.last && node && decorated.indexOf(node.id.line) === -1) {
-    let line = editor.document.lineAt(node.id.line-1);
+	// notAlreadyDecorated = decorated.indexOf(node.id.line) === -1
+	notAlreadyDecorated = true; // TODO
+  if (instruction < rawData.last && node && notAlreadyDecorated) {
+    // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
-      range: line.range,
+      range: rangeOfLoc(node.id.loc),
       hoverMessage: "next sibling"
     };
     editor.setDecorations(sibling1, [dec]);
@@ -205,17 +217,17 @@ class MyCodeLensProvider implements vscode.CodeLensProvider {
 export let codelens = new MyCodeLensProvider();
 
 function highlightCurrent(editor: vscode.TextEditor) {
-  let decorated: number[] = [];
+  // let decorated: number[] = [];
 
   let node = rawData.nodes[instruction];
   if (node) {
-    let line = editor.document.lineAt(node.id.line-1);
+    // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
-      range: line.range,
+      range: rangeOfLoc(node.id.loc),
       hoverMessage: "next"
     };
     editor.setDecorations(currentDec, [dec]);
-    decorated.push(node.id.line);
+    // decorated.push(node.id.line);
   } else {
     editor.setDecorations(currentDec, []);
   }
@@ -239,7 +251,8 @@ async function scrollToCursor(editor: vscode.TextEditor) {
 export async function updateView(editor: vscode.TextEditor) {
 	codelens.onDidChangeCodeLensesEmitter.fire();
 	highlightCurrent(editor);
-	moveCursor(editor, rawData.nodes[instruction].id.line - 1);
+	// moveCursor(editor, rawData.nodes[instruction].id.line - 1);
+	moveCursor(editor, rawData.nodes[instruction].id.loc[0][0] - 1);
 	await scrollToCursor(editor);
 }
 
