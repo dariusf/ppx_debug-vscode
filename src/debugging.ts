@@ -293,6 +293,53 @@ function getStoredHints(): [vscode.Position, string][] {
 function deleteStoredHints() {
 	storedHints = {};
 }
+function computeHints(document: vscode.TextDocument) {
+	const span = rangeOfLoc(rawData.nodes[instruction].id.loc);
+
+	let allHints;
+
+	if (!rawData.nodes[instruction].args) {
+		allHints = [[span.end, ` =${instruction}=> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type}`]];
+	} else {
+
+		const text = document.getText(span);
+
+		let args = rawData.nodes[instruction].args;
+		
+		allHints = Object.keys(args).flatMap(arg => {
+			if (arg.startsWith('_')) {
+				return [];
+			}
+			
+			const matches = text.matchAll(new RegExp('(?<!\\.)\\b' + arg + '\\b', 'g'));
+			let res: [vscode.Position, string][] = [];
+			for (const match of matches) {
+				if (match.index === undefined) {
+					console.log('no match?', match);
+					continue;
+				}
+				let pos = document.positionAt(document.offsetAt(span.start) + match.index + arg.length);
+				res.push([pos, ' = ' + args[arg]]);
+
+				// show only the first match, it's less likely to be shadowed
+				break;
+			}
+			
+			return res;
+		});
+
+		allHints.push([span.end, ` =${instruction}=> ${args['_res'], vscode.InlayHintKind.Type}`]);
+	}
+	
+	if (cumulativeHints) {
+		let hs = [...allHints];
+		// getStoredHints().forEach(h => allHints.push(h));
+		hs.forEach(h => {
+			storeHint(h);
+		});
+		// allHints = getStoredHints();
+	}
+}
 
 class MyInlayHintsProvider implements vscode.InlayHintsProvider {
 
@@ -302,53 +349,7 @@ class MyInlayHintsProvider implements vscode.InlayHintsProvider {
 	}
 
 	provideInlayHints(document: vscode.TextDocument, range: vscode.Range, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlayHint[]> {
-		const span = rangeOfLoc(rawData.nodes[instruction].id.loc);
-
-		let allHints;
-
-		if (!rawData.nodes[instruction].args) {
-			allHints = [[span.end, ` =${instruction}=> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type}`]];
-		} else {
-
-			const text = document.getText(span);
-
-			let args = rawData.nodes[instruction].args;
-			
-			allHints = Object.keys(args).flatMap(arg => {
-				if (arg.startsWith('_')) {
-					return [];
-				}
-				
-				const matches = text.matchAll(new RegExp('(?<!\\.)\\b' + arg + '\\b', 'g'));
-				let res: [vscode.Position, string][] = [];
-				for (const match of matches) {
-					if (match.index === undefined) {
-						console.log('no match?', match);
-						continue;
-					}
-					let pos = document.positionAt(document.offsetAt(span.start) + match.index + arg.length);
-					res.push([pos, ' = ' + args[arg]]);
-
-					// show only the first match, it's less likely to be shadowed
-					break;
-				}
-				
-				return res;
-			});
-
-			allHints.push([span.end, ` =${instruction}=> ${args['_res'], vscode.InlayHintKind.Type}`]);
-		}
-		
-		if (cumulativeHints) {
-			let hs = [...allHints];
-			// getStoredHints().forEach(h => allHints.push(h));
-			hs.forEach(h => {
-				storeHint(h);
-			});
-			allHints = getStoredHints();
-		}
-
-		return allHints.map(([p, h]) => new vscode.InlayHint(p, h));
+		return getStoredHints().map(([p, h]) => new vscode.InlayHint(p, h));
 
 	}
 }
@@ -457,6 +458,7 @@ export async function updateView(editor: vscode.TextEditor) {
 
 	// update current editor
 	codelens.onDidChangeCodeLensesEmitter.fire();
+	computeHints(editor.document);
 	inlayHints.emitter.fire();
 	// console.log('fired');
 
@@ -503,20 +505,26 @@ export async function runToHere() {
 		return;
 	}
 	let cursor = editor.document.offsetAt(editor.selection.start);
-	for (let i = instruction + 1; i < rawData.last; i++) {
-		let range = rangeOfLoc(rawData.nodes[i].id.loc);
+	let backup = instruction;
+	for (instruction = Math.min(instruction + 1, rawData.last - 1); instruction < rawData.last; instruction++) {
+		let range = rangeOfLoc(rawData.nodes[instruction].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
 		// this doesn't work well presumably because not every event is dispatched
-		// if (cumulativeHints) {
-		// 	await nextInstruction();
-		// }
+		if (cumulativeHints) {
+			// await nextInstruction();
+			computeHints(editor.document);
+		}
 		if (start <= cursor && cursor <= end) {
-			instruction = i;
+			// instruction = i;
 			await updateView(editor);
+			await vscode.window.showInformationMessage(`Ran forward to ${instruction}`);
 			return;
 		}
 	}
+	await vscode.window.showInformationMessage('The given point was not hit when running forward, so nothing done');
+	instruction = backup;
+	await updateView(editor);
 }
 
 export async function runBackwardsToHere() {
@@ -525,26 +533,43 @@ export async function runBackwardsToHere() {
 		return;
 	}
 	let cursor = editor.document.offsetAt(editor.selection.start);
-	for (let i = instruction - 1; i >= 0; i--) {
-		let range = rangeOfLoc(rawData.nodes[i].id.loc);
+	let backup = instruction;
+	for (instruction = Math.max(instruction - 1, 1); instruction > 1; instruction--) {
+		let range = rangeOfLoc(rawData.nodes[instruction].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
-		// if (cumulativeHints) {
-		// 	await prevInstruction();
-		// }
+		if (cumulativeHints) {
+			// await prevInstruction();
+			computeHints(editor.document);
+		}
 		if (start <= cursor && cursor <= end) {
-			instruction = i;
+			// instruction = i;
 			await updateView(editor);
+			await vscode.window.showInformationMessage(`Ran backwards to ${instruction}`);
 			return;
 		}
 	}
+	await vscode.window.showInformationMessage('The given point was not hit when running backwards, so nothing done');
+	instruction = backup;
+	await updateView(editor);
 }
 
-export function togglePersistence() {
+export async function togglePersistence() {
 	if (cumulativeHints) {
 		deleteStoredHints();
 	}
 	cumulativeHints = !cumulativeHints;
-	console.log('cumulativeHints', cumulativeHints);
-	inlayHints.emitter.fire();
+	// console.log('cumulativeHints', cumulativeHints);
+	// inlayHints.emitter.fire();
+
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	await updateView(editor);
+	if (cumulativeHints) {
+		await vscode.window.showInformationMessage('Trail will be shown');
+	} else {
+		await vscode.window.showInformationMessage('Trail hidden');
+	}
 }
