@@ -457,12 +457,15 @@ export function prevInstruction() {
 	updateView(editor);
 }
 
-export function goToInstruction() {
-	let i = 0;
+export async function goToInstruction() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		return;
 	}
-	instruction = i;
+	let res = await vscode.window.showInputBox();
+	if (!res) {
+		return;
+	}
+	instruction = +res;
 	updateView(editor);
 }

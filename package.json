@@ -141,15 +141,19 @@
       },
       {
         "command": "extension.mock-debug.loadTrace",
-        "title": "Load a trace file"
+        "title": "ppx_debug: Load Trace"
       },
       {
         "command": "extension.mock-debug.nextInstruction",
-        "title": "Next instruction"
+        "title": "ppx_debug: Next Instruction"
       },
       {
         "command": "extension.mock-debug.prevInstruction",
-        "title": "Previous instruction"
+        "title": "ppx_debug: Previous Instruction"
+      },
+      {
+        "command": "extension.mock-debug.goToInstruction",
+        "title": "ppx_debug: Go to Instruction"
       }
     ],
     "breakpoints": [
