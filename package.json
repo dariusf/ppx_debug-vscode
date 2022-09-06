@@ -85,6 +85,14 @@
       {
         "command": "extension.mock-debug.nextInstruction",
         "key": "shift+alt+cmd+right"
+      },
+      {
+        "command": "extension.mock-debug.runToHere",
+        "key": "shift+alt+cmd+down"
+      },
+      {
+        "command": "extension.mock-debug.runBackwardsToHere",
+        "key": "shift+alt+cmd+up"
       }
     ],
     "menus": {
@@ -162,6 +170,10 @@
       {
         "command": "extension.mock-debug.runBackwardsToHere",
         "title": "ppx_debug: Run backwards to this point"
+      },
+      {
+        "command": "extension.mock-debug.togglePersistence",
+        "title": "ppx_debug: Toggle trail"
       }
     ],
     "breakpoints": [

@@ -279,81 +279,78 @@ class MyHoverProvider implements vscode.HoverProvider {
 
 export let hover = new MyHoverProvider();
 
+let cumulativeHints = false;
+let storedHints = {};
+
+function storeHint([pos, text]: [vscode.Position, string]) {
+	// pos: vscode.Position, text: string
+	let id = `${pos.line},${pos.character}`;
+	storedHints[id] = [pos, text];
+}
+function getStoredHints(): [vscode.Position, string][] {
+	return Object.values(storedHints);
+}
+function deleteStoredHints() {
+	storedHints = {};
+}
+
 class MyInlayHintsProvider implements vscode.InlayHintsProvider {
 
 	public emitter = new vscode.EventEmitter<void>();
 	public get onDidChangeInlayHints(): vscode.Event<void> {
 		return this.emitter.event;
 	}
-	// ?: vscode.Event<void> | undefined;
 
 	provideInlayHints(document: vscode.TextDocument, range: vscode.Range, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlayHint[]> {
-		// throw new Error("Method not implemented.");
-		// console.log('INLAY HINTS');
-
 		const span = rangeOfLoc(rawData.nodes[instruction].id.loc);
 
+		let allHints;
+
 		if (!rawData.nodes[instruction].args) {
-			return [new vscode.InlayHint(span.end, ` ==> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type} (${instruction})`)];
+			allHints = [[span.end, ` =${instruction}=> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type}`]];
+		} else {
+
+			const text = document.getText(span);
+
+			let args = rawData.nodes[instruction].args;
+			
+			allHints = Object.keys(args).flatMap(arg => {
+				if (arg.startsWith('_')) {
+					return [];
+				}
+				
+				const matches = text.matchAll(new RegExp('(?<!\\.)\\b' + arg + '\\b', 'g'));
+				let res: [vscode.Position, string][] = [];
+				for (const match of matches) {
+					if (match.index === undefined) {
+						console.log('no match?', match);
+						continue;
+					}
+					let pos = document.positionAt(document.offsetAt(span.start) + match.index + arg.length);
+					res.push([pos, ' = ' + args[arg]]);
+
+					// show only the first match, it's less likely to be shadowed
+					break;
+				}
+				
+				return res;
+			});
+
+			allHints.push([span.end, ` =${instruction}=> ${args['_res'], vscode.InlayHintKind.Type}`]);
+		}
+		
+		if (cumulativeHints) {
+			let hs = [...allHints];
+			// getStoredHints().forEach(h => allHints.push(h));
+			hs.forEach(h => {
+				storeHint(h);
+			});
+			allHints = getStoredHints();
 		}
 
-		const text = document.getText(span);
+		return allHints.map(([p, h]) => new vscode.InlayHint(p, h));
 
-		// console.log(text);
-
-		let args = rawData.nodes[instruction].args;
-		// console.log('args', args);
-		
-		let hints = Object.keys(args).flatMap(arg => {
-			if (arg.startsWith('_')) {
-				return [];
-			}
-			// console.log('survived', arg);
-			
-			// console.log('arg', arg);
-			const matches = text.matchAll(new RegExp('(?<!\\.)\\b' + arg + '\\b', 'g'));
-			// console.log(matches);
-			let res: vscode.InlayHint[] = [];
-			for (const match of matches) {
-				// console.log(match);
-				// console.log(match.index)
-				if (match.index === undefined) {
-					console.log('no match?', match);
-					continue;
-				}
-				res.push(new vscode.InlayHint(document.positionAt(document.offsetAt(span.start) + match.index + arg.length), ' = ' + args[arg], vscode.InlayHintKind.Type));
-
-				// console.log('got', arg, args[arg], document.positionAt(document.offsetAt(span.start) + match.index + arg.length));
-				
-				// show only the first match, it's less likely to be shadowed
-				break;
-			}
-			// console.log('res', res);
-			
-			return res;
-			// return [new vscode.InlayHint(new vscode.Position(20, 0), "INLAY HINT TYPE", vscode.InlayHintKind.Type)];
-		});
-
-		hints.push(new vscode.InlayHint(span.end, ` ==> ${args['_res'], vscode.InlayHintKind.Type} (${instruction})`));
-
-		// console.log('ok', hints.length);
-
-		return hints;
-
-		// const matches = string.matchAll(regexp);
-		// for (const match of matches) {
-		// 	console.log(match);
-		// 	console.log(match.index)
-		// }
-
-		// return [
-		// 	new vscode.InlayHint(new vscode.Position(20, 0), "INLAY HINT TYPE", vscode.InlayHintKind.Type),
-		// 	new vscode.InlayHint(new vscode.Position(10, 0), "INLAY HINT PARAM", vscode.InlayHintKind.Parameter)
-		// ];
 	}
-	// resolveInlayHint?(hint: vscode.InlayHint, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlayHint> {
-	// 	throw new Error("Method not implemented.");
-	// }
 }
 
 export let inlayHints = new MyInlayHintsProvider();
@@ -461,6 +458,7 @@ export async function updateView(editor: vscode.TextEditor) {
 	// update current editor
 	codelens.onDidChangeCodeLensesEmitter.fire();
 	inlayHints.emitter.fire();
+	// console.log('fired');
 
 	highlightCurrent(editor);
 	// moveCursor(editor, rawData.nodes[instruction].id.line - 1);
@@ -468,22 +466,22 @@ export async function updateView(editor: vscode.TextEditor) {
 	await scrollToCursor(editor);
 }
 
-export function nextInstruction() {
+export async function nextInstruction() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor || instruction >= rawData.last) {
 		return;
 	}
   instruction++;
-	updateView(editor);
+	await updateView(editor);
 }
 
-export function prevInstruction() {
+export async function prevInstruction() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor || instruction <= 1) {
 		return;
 	}
   instruction--;
-	updateView(editor);
+	await updateView(editor);
 }
 
 export async function goToInstruction() {
@@ -496,41 +494,57 @@ export async function goToInstruction() {
 		return;
 	}
 	instruction = +res;
-	updateView(editor);
+	await updateView(editor);
 }
 
-export function runToHere() {
+export async function runToHere() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		return;
 	}
 	let cursor = editor.document.offsetAt(editor.selection.start);
-	for (let i = instruction; i < rawData.last; i++) {
+	for (let i = instruction + 1; i < rawData.last; i++) {
 		let range = rangeOfLoc(rawData.nodes[i].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
+		// this doesn't work well presumably because not every event is dispatched
+		// if (cumulativeHints) {
+		// 	await nextInstruction();
+		// }
 		if (start <= cursor && cursor <= end) {
 			instruction = i;
-			updateView(editor);
+			await updateView(editor);
 			return;
 		}
 	}
 }
 
-export function runBackwardsToHere() {
+export async function runBackwardsToHere() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		return;
 	}
 	let cursor = editor.document.offsetAt(editor.selection.start);
-	for (let i = instruction; i >= 0; i--) {
+	for (let i = instruction - 1; i >= 0; i--) {
 		let range = rangeOfLoc(rawData.nodes[i].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
+		// if (cumulativeHints) {
+		// 	await prevInstruction();
+		// }
 		if (start <= cursor && cursor <= end) {
 			instruction = i;
-			updateView(editor);
+			await updateView(editor);
 			return;
 		}
 	}
+}
+
+export function togglePersistence() {
+	if (cumulativeHints) {
+		deleteStoredHints();
+	}
+	cumulativeHints = !cumulativeHints;
+	console.log('cumulativeHints', cumulativeHints);
+	inlayHints.emitter.fire();
 }
