@@ -53,6 +53,20 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.prevInstruction", debugging.prevInstruction));
 	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.goToInstruction", debugging.goToInstruction));
 
+	context.subscriptions.push(
+		vscode.languages.registerInlayHintsProvider({scheme: 'file'}, debugging.inlayHints));
+
+	// this only runs when the debugger pauses
+
+	// context.subscriptions.push(
+	// 	vscode.languages.registerInlineValuesProvider({scheme: 'file'}, debugging.inlineValues));
+
+	context.subscriptions.push(
+		vscode.languages.registerHoverProvider({scheme: 'file'}, debugging.hover));
+// 'ocaml'
+// {scheme: 'file'}
+// console.log('registered hover');
+
 	let enableCodeLens = false;
 	if (enableCodeLens) {
 		context.subscriptions.push(

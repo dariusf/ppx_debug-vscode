@@ -100,7 +100,7 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
     // };
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      hoverMessage: "next"
+      // hoverMessage: "next"
     };
     editor.setDecorations(future1, [dec]);
     decorated.push(node.id.line);
@@ -115,7 +115,7 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
     // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      hoverMessage: "prev"
+      // hoverMessage: "prev"
     };
     editor.setDecorations(past1, [dec]);
   } else {
@@ -130,7 +130,7 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
     // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      hoverMessage: "next sibling"
+      // hoverMessage: "next sibling"
     };
     editor.setDecorations(sibling1, [dec]);
   } else {
@@ -140,6 +140,13 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
 
 // custom debugging ui
 
+// let kind = '';
+// if (rawData.nodes[instruction].content) {
+// 	kind = ' (event)'
+// } else if (rawData.nodes[instruction].args) {
+// 	kind = ' (call)'
+// }
+
 export const currentDec = vscode.window.createTextEditorDecorationType({
 	// borderWidth: '1px',
 	// borderStyle: 'solid',
@@ -147,13 +154,16 @@ export const currentDec = vscode.window.createTextEditorDecorationType({
 	// overviewRulerLane: vscode.OverviewRulerLane.Right,
 	// backgroundColor: { id: 'listFilterWidget.background' },
 	// backgroundColor: { id: 'listFilterWidget.background' },
+
 	backgroundColor: { id: 'list.focusBackground' },
+
 			// 'red',
 	after: {
 		// contentText: 'prev',
 		// contentText: ' ←a',
 		// contentText: ' <--',
 		contentText: '  <--',
+		// contentText: '>>>',
 		fontWeight: '8px',
 		color: { id: 'editorCodeLens.foreground' },
 		// color: { id: 'debugView.valueChangedHighlight' },
@@ -168,6 +178,22 @@ export const currentDec = vscode.window.createTextEditorDecorationType({
 	// 	// this color will be used in dark color themes
 	// 	borderColor: 'lightblue'
 	// }
+});
+
+export const currentDec1 = vscode.window.createTextEditorDecorationType({
+	after: {
+		contentText: '<<<',
+		fontWeight: '8px',
+		color: { id: 'editorCodeLens.foreground' },
+	},
+});
+
+export const currentDec2 = vscode.window.createTextEditorDecorationType({
+	after: {
+		contentText: '>>>',
+		fontWeight: '8px',
+		color: { id: 'editorCodeLens.foreground' },
+	},
 });
 
 let instruction = 0;
@@ -216,20 +242,176 @@ class MyCodeLensProvider implements vscode.CodeLensProvider {
 
 export let codelens = new MyCodeLensProvider();
 
+class MyHoverProvider implements vscode.HoverProvider {
+	
+	provideHover(document, position, token) {
+		// console.log('hello');
+		
+		const range = document.getWordRangeAtPosition(position);
+		const word = document.getText(range);
+		// console.log('word', rawData, instruction);
+		// console.log(rawData.nodes[instruction]);
+
+		let s : any = null;
+
+		if (!rawData) {
+			return;
+		}
+
+		if (rawData.nodes[instruction].content) {
+			// console.log(rawData.nodes[instruction].content);
+			s = new vscode.MarkdownString(rawData.nodes[instruction].content);
+		} else if (rawData.nodes[instruction].args) {
+			if (rawData.nodes[instruction].args[word]) {
+				// console.log(rawData.nodes[instruction].args[word]);
+				s = new vscode.MarkdownString(rawData.nodes[instruction].args[word]);
+			}
+		}
+		// console.log('done');
+
+		if (s) {
+			s.supportHtml = true;
+			s.isTrusted = true;
+			return new vscode.Hover(s);
+		}
+  }
+}
+
+export let hover = new MyHoverProvider();
+
+class MyInlayHintsProvider implements vscode.InlayHintsProvider {
+
+	public emitter = new vscode.EventEmitter<void>();
+	public get onDidChangeInlayHints(): vscode.Event<void> {
+		return this.emitter.event;
+	}
+	// ?: vscode.Event<void> | undefined;
+
+	provideInlayHints(document: vscode.TextDocument, range: vscode.Range, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlayHint[]> {
+		// throw new Error("Method not implemented.");
+		// console.log('INLAY HINTS');
+
+		const span = rangeOfLoc(rawData.nodes[instruction].id.loc);
+
+		if (!rawData.nodes[instruction].args) {
+			return [new vscode.InlayHint(span.end, ' => ' + rawData.nodes[instruction].content, vscode.InlayHintKind.Type)];
+		}
+
+		const text = document.getText(span);
+
+		// console.log(text);
+
+		let args = rawData.nodes[instruction].args;
+		// console.log('args', args);
+		
+		let hints = Object.keys(args).flatMap(arg => {
+			if (arg.startsWith('_')) {
+				return [];
+			}
+			// console.log('survived', arg);
+			
+			// console.log('arg', arg);
+			const matches = text.matchAll(new RegExp('(?<!\\.)\\b' + arg + '\\b', 'g'));
+			// console.log(matches);
+			let res: vscode.InlayHint[] = [];
+			for (const match of matches) {
+				// console.log(match);
+				// console.log(match.index)
+				if (match.index === undefined) {
+					console.log('no match?', match);
+					continue;
+				}
+				res.push(new vscode.InlayHint(document.positionAt(document.offsetAt(span.start) + match.index + arg.length), ' = ' + args[arg], vscode.InlayHintKind.Type));
+
+				// console.log('got', arg, args[arg], document.positionAt(document.offsetAt(span.start) + match.index + arg.length));
+				
+				// show only the first match, it's less likely to be shadowed
+				break;
+			}
+			// console.log('res', res);
+			
+			return res;
+			// return [new vscode.InlayHint(new vscode.Position(20, 0), "INLAY HINT TYPE", vscode.InlayHintKind.Type)];
+		});
+
+		hints.push(new vscode.InlayHint(span.end, ' => ' + args['_res'], vscode.InlayHintKind.Type));
+
+		// console.log('ok', hints.length);
+
+		return hints;
+
+		// const matches = string.matchAll(regexp);
+		// for (const match of matches) {
+		// 	console.log(match);
+		// 	console.log(match.index)
+		// }
+
+		// return [
+		// 	new vscode.InlayHint(new vscode.Position(20, 0), "INLAY HINT TYPE", vscode.InlayHintKind.Type),
+		// 	new vscode.InlayHint(new vscode.Position(10, 0), "INLAY HINT PARAM", vscode.InlayHintKind.Parameter)
+		// ];
+	}
+	// resolveInlayHint?(hint: vscode.InlayHint, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlayHint> {
+	// 	throw new Error("Method not implemented.");
+	// }
+}
+
+export let inlayHints = new MyInlayHintsProvider();
+
+class MyInlineValuesProvider implements vscode.InlineValuesProvider {
+
+	// onDidChangeInlineValues?: vscode.Event<void> | undefined;
+	provideInlineValues(document: vscode.TextDocument, viewPort: vscode.Range, context: vscode.InlineValueContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlineValue[]> {
+		console.log('INLINE VALUES');
+		
+		return [
+
+			new vscode.InlineValueEvaluatableExpression(new vscode.Range(new vscode.Position(30, 0), new vscode.Position(31, 0)), "EXPR"),
+
+			new vscode.InlineValueText(new vscode.Range(new vscode.Position(32, 0), new vscode.Position(33, 0)), "TEXT"),
+
+			new vscode.InlineValueVariableLookup(new vscode.Range(new vscode.Position(34, 0), new vscode.Position(35, 0)), "VAR")
+		];
+	}
+}
+
+export let inlineValues = new MyInlineValuesProvider();
+
 function highlightCurrent(editor: vscode.TextEditor) {
   // let decorated: number[] = [];
 
   let node = rawData.nodes[instruction];
   if (node) {
     // let line = editor.document.lineAt(node.id.line-1);
-    let dec = {
-      range: rangeOfLoc(node.id.loc),
-      hoverMessage: "next"
-    };
-    editor.setDecorations(currentDec, [dec]);
+    // let dec = {
+    //   range: rangeOfLoc(node.id.loc),
+    //   // hoverMessage: "next"
+    // };
+    // editor.setDecorations(currentDec, [dec]);
+
+		let span = rangeOfLoc(node.id.loc);
+
+    // let dec1 = {
+    //   range: new vscode.Range(span.start, editor.document.positionAt(editor.document.offsetAt(span.start)+1))
+    // };
+    // let dec2 = {
+    //   range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.end)-1), span.end)
+    // };
+    // editor.setDecorations(currentDec, [dec1, dec2]);
     // decorated.push(node.id.line);
+
+    let dec1 = {
+      range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.start)-1), span.start)
+    };
+    let dec2 = {
+      range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.end)-1), span.end)
+    };
+    editor.setDecorations(currentDec1, [dec1]);
+    editor.setDecorations(currentDec2, [dec2]);
   } else {
-    editor.setDecorations(currentDec, []);
+    // editor.setDecorations(currentDec, []);
+    editor.setDecorations(currentDec1, []);
+    editor.setDecorations(currentDec2, []);
   }
 }
 
@@ -250,6 +432,7 @@ async function scrollToCursor(editor: vscode.TextEditor) {
 
 export async function updateView(editor: vscode.TextEditor) {
 	codelens.onDidChangeCodeLensesEmitter.fire();
+	inlayHints.emitter.fire();
 	highlightCurrent(editor);
 	// moveCursor(editor, rawData.nodes[instruction].id.line - 1);
 	moveCursor(editor, rawData.nodes[instruction].id.loc[0][0] - 1);
