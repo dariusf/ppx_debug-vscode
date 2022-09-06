@@ -573,3 +573,26 @@ export async function togglePersistence() {
 		await vscode.window.showInformationMessage('Trail hidden');
 	}
 }
+
+export async function stop() {
+	// nuke hints
+	if (cumulativeHints) {
+		deleteStoredHints();
+	}
+	cumulativeHints = false;
+
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+
+	// go back to the start...
+	instruction = 1;
+	await updateView(editor);
+
+	// then hide the decoration
+	editor.setDecorations(currentDec1, []);
+	editor.setDecorations(currentDec2, []);
+
+	// the trace is actually still loaded; try to go to the next node
+}
