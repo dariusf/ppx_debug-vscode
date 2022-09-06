@@ -141,19 +141,27 @@
       },
       {
         "command": "extension.mock-debug.loadTrace",
-        "title": "ppx_debug: Load Trace"
+        "title": "ppx_debug: Load trace"
       },
       {
         "command": "extension.mock-debug.nextInstruction",
-        "title": "ppx_debug: Next Instruction"
+        "title": "ppx_debug: Next instruction"
       },
       {
         "command": "extension.mock-debug.prevInstruction",
-        "title": "ppx_debug: Previous Instruction"
+        "title": "ppx_debug: Previous instruction"
       },
       {
         "command": "extension.mock-debug.goToInstruction",
-        "title": "ppx_debug: Go to Instruction"
+        "title": "ppx_debug: Go to instruction"
+      },
+      {
+        "command": "extension.mock-debug.runToHere",
+        "title": "ppx_debug: Run to this point"
+      },
+      {
+        "command": "extension.mock-debug.runBackwardsToHere",
+        "title": "ppx_debug: Run backwards to this point"
       }
     ],
     "breakpoints": [

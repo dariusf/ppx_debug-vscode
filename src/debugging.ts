@@ -294,7 +294,7 @@ class MyInlayHintsProvider implements vscode.InlayHintsProvider {
 		const span = rangeOfLoc(rawData.nodes[instruction].id.loc);
 
 		if (!rawData.nodes[instruction].args) {
-			return [new vscode.InlayHint(span.end, ' => ' + rawData.nodes[instruction].content, vscode.InlayHintKind.Type)];
+			return [new vscode.InlayHint(span.end, ` ==> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type} (${instruction})`)];
 		}
 
 		const text = document.getText(span);
@@ -334,7 +334,7 @@ class MyInlayHintsProvider implements vscode.InlayHintsProvider {
 			// return [new vscode.InlayHint(new vscode.Position(20, 0), "INLAY HINT TYPE", vscode.InlayHintKind.Type)];
 		});
 
-		hints.push(new vscode.InlayHint(span.end, ' => ' + args['_res'], vscode.InlayHintKind.Type));
+		hints.push(new vscode.InlayHint(span.end, ` ==> ${args['_res'], vscode.InlayHintKind.Type} (${instruction})`));
 
 		// console.log('ok', hints.length);
 
@@ -430,9 +430,38 @@ async function scrollToCursor(editor: vscode.TextEditor) {
 	});
 }
 
+async function getWorkspace() {
+	let folders = vscode.workspace.workspaceFolders;
+	if (!folders) {
+		// await vscode.window.showInformationMessage("no workspace");
+		// return;
+		throw 'no workspace';
+	}
+	let uri = folders[0].uri;
+	let workspace = uri.path + "/";
+	return workspace;
+}
+
 export async function updateView(editor: vscode.TextEditor) {
+
+	// switch to file
+	let file = rawData.nodes[instruction].id.file;
+	let ws = await getWorkspace();
+
+	if (!editor.document.fileName.startsWith(ws)) {
+		throw 'file does not start with workspace?';
+	}
+	let rel_file = editor.document.fileName.substring(ws.length);
+
+	if (rel_file !== file) {
+		let doc = await vscode.workspace.openTextDocument(`${ws}/${file}`);
+		await vscode.window.showTextDocument(doc);
+	}
+
+	// update current editor
 	codelens.onDidChangeCodeLensesEmitter.fire();
 	inlayHints.emitter.fire();
+
 	highlightCurrent(editor);
 	// moveCursor(editor, rawData.nodes[instruction].id.line - 1);
 	moveCursor(editor, rawData.nodes[instruction].id.loc[0][0] - 1);
@@ -468,4 +497,40 @@ export async function goToInstruction() {
 	}
 	instruction = +res;
 	updateView(editor);
+}
+
+export function runToHere() {
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	let cursor = editor.document.offsetAt(editor.selection.start);
+	for (let i = instruction; i < rawData.last; i++) {
+		let range = rangeOfLoc(rawData.nodes[i].id.loc);
+		let start = editor.document.offsetAt(range.start);
+		let end = editor.document.offsetAt(range.end);
+		if (start <= cursor && cursor <= end) {
+			instruction = i;
+			updateView(editor);
+			return;
+		}
+	}
+}
+
+export function runBackwardsToHere() {
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+	let cursor = editor.document.offsetAt(editor.selection.start);
+	for (let i = instruction; i >= 0; i--) {
+		let range = rangeOfLoc(rawData.nodes[i].id.loc);
+		let start = editor.document.offsetAt(range.start);
+		let end = editor.document.offsetAt(range.end);
+		if (start <= cursor && cursor <= end) {
+			instruction = i;
+			updateView(editor);
+			return;
+		}
+	}
 }

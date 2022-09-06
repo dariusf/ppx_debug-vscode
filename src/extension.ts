@@ -52,6 +52,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.nextInstruction", debugging.nextInstruction));
 	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.prevInstruction", debugging.prevInstruction));
 	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.goToInstruction", debugging.goToInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.runToHere", debugging.runToHere));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.runBackwardsToHere", debugging.runBackwardsToHere));
 
 	context.subscriptions.push(
 		vscode.languages.registerInlayHintsProvider({scheme: 'file'}, debugging.inlayHints));
