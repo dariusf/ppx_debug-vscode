@@ -299,7 +299,7 @@ function computeHints(document: vscode.TextDocument) {
 	let allHints;
 
 	if (!rawData.nodes[instruction].args) {
-		allHints = [[span.end, ` =${instruction}=> ${rawData.nodes[instruction].content, vscode.InlayHintKind.Type}`]];
+		allHints = [[span.end, ` =${instruction}=> ${rawData.nodes[instruction].content}`]];
 	} else {
 
 		const text = document.getText(span);
@@ -328,7 +328,7 @@ function computeHints(document: vscode.TextDocument) {
 			return res;
 		});
 
-		allHints.push([span.end, ` =${instruction}=> ${args['_res'], vscode.InlayHintKind.Type}`]);
+		allHints.push([span.end, ` =${instruction}=> ${args['_res']}`]);
 	}
 	
 	if (!cumulativeHints) {
@@ -442,6 +442,8 @@ async function getWorkspace() {
 
 export async function updateView(editor: vscode.TextEditor) {
 
+	console.log(rawData.nodes[instruction]);
+	
 	// switch to file
 	let file = rawData.nodes[instruction].id.file;
 	let ws = await getWorkspace();
@@ -522,7 +524,7 @@ export async function runToHere() {
 			return;
 		}
 	}
-	await vscode.window.showInformationMessage('The given point was not hit when running forward, so nothing done');
+	await vscode.window.showInformationMessage('The given point was not hit when running forward');
 	instruction = backup;
 	await updateView(editor);
 }
@@ -549,7 +551,7 @@ export async function runBackwardsToHere() {
 			return;
 		}
 	}
-	await vscode.window.showInformationMessage('The given point was not hit when running backwards, so nothing done');
+	await vscode.window.showInformationMessage('The given point was not hit when running backwards');
 	instruction = backup;
 	await updateView(editor);
 }
