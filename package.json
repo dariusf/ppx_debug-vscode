@@ -3,7 +3,7 @@
   "displayName": "ppx_debug",
   "version": "0.51.0",
   "publisher": "ms-vscode",
-  "description": "Starter extension for developing debug adapters for VS Code.",
+  "description": "Debugging",
   "author": {
     "name": "Microsoft Corporation"
   },
@@ -161,7 +161,7 @@
       },
       {
         "command": "extension.mock-debug.goToInstruction",
-        "title": "ppx_debug: Go to instruction"
+        "title": "ppx_debug: Go to point"
       },
       {
         "command": "extension.mock-debug.runToHere",
