@@ -331,14 +331,14 @@ function computeHints(document: vscode.TextDocument) {
 		allHints.push([span.end, ` =${instruction}=> ${args['_res'], vscode.InlayHintKind.Type}`]);
 	}
 	
-	if (cumulativeHints) {
-		let hs = [...allHints];
-		// getStoredHints().forEach(h => allHints.push(h));
-		hs.forEach(h => {
-			storeHint(h);
-		});
-		// allHints = getStoredHints();
+	if (!cumulativeHints) {
+		deleteStoredHints();
 	}
+
+	let hs = [...allHints];
+	hs.forEach(h => {
+		storeHint(h);
+	});
 }
 
 class MyInlayHintsProvider implements vscode.InlayHintsProvider {
