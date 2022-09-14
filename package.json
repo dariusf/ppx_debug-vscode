@@ -1,6 +1,6 @@
 {
-  "name": "mock-debug",
-  "displayName": "Mock Debug",
+  "name": "ppx-debug",
+  "displayName": "ppx_debug",
   "version": "0.51.0",
   "publisher": "ms-vscode",
   "description": "Starter extension for developing debug adapters for VS Code.",
