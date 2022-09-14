@@ -71,7 +71,8 @@
     "onCommand:extension.ppx-debug.getProgramName",
     "onCommand:extension.ppx-debug.runEditorContents",
     "onCommand:extension.ppx-debug.debugEditorContents",
-    "onCommand:extension.ppx-debug.loadTrace"
+    "onCommand:extension.ppx-debug.loadTrace",
+    "onCommand:extension.ppx-debug.reloadTrace"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -119,6 +120,9 @@
         },
         {
           "command": "extension.ppx-debug.loadTrace"
+        },
+        {
+          "command": "extension.ppx-debug.reloadTrace"
         }
       ],
       "debug/variables/context": [
@@ -150,6 +154,10 @@
       {
         "command": "extension.ppx-debug.loadTrace",
         "title": "ppx_debug: Load trace"
+      },
+      {
+        "command": "extension.ppx-debug.reloadTrace",
+        "title": "ppx_debug: Reload trace"
       },
       {
         "command": "extension.ppx-debug.nextInstruction",

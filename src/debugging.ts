@@ -198,19 +198,23 @@ export const currentDec2 = vscode.window.createTextEditorDecorationType({
 
 let instruction = 0;
 let rawData;
+let prevFile;
 
 export async function loadRawData(fa: FileAccessor, workspace: string, file: string) {
+		prevFile = file;
     rawData = JSON.parse(
       new TextDecoder().decode(
         await fa.readFile(
-          // "/Users/darius/ocaml/vscode-mock-debug/debug.json"
 					workspace + file
-					// "debug.json"
         )
-        // await this.fileAccessor.readFile("linear.json")
       )
     );
   instruction = 1;
+}
+
+export async function reloadRawData(fa: FileAccessor, workspace: string) {
+    rawData = JSON.parse(
+      new TextDecoder().decode(await fa.readFile(workspace + prevFile)));
 }
 
 class MyCodeLensProvider implements vscode.CodeLensProvider {

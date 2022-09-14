@@ -57,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.togglePersistence", debugging.togglePersistence));
 	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.stop", debugging.stop));
 
+
 	context.subscriptions.push(
 		vscode.languages.registerInlayHintsProvider({scheme: 'file'}, debugging.inlayHints));
 
@@ -79,6 +80,28 @@ export function activate(context: vscode.ExtensionContext) {
 				{ scheme: 'file' },
 				debugging.codelens));
 	}
+
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.reloadTrace", async (resource: vscode.Uri) => {
+				let targetResource = resource;
+				if (!targetResource && vscode.window.activeTextEditor) {
+					targetResource = vscode.window.activeTextEditor.document.uri;
+				}
+				let folders = vscode.workspace.workspaceFolders;
+				if (!folders) {
+					await vscode.window.showInformationMessage("no workspace");
+					return;
+				}
+    		let uri = folders[0].uri;
+				let workspace = uri.path + "/";
+
+				if (targetResource) {
+					let editor = vscode.window.activeTextEditor;
+					if (editor) {
+						await debugging.reloadRawData(workspaceFileAccessor, workspace);
+						await debugging.updateView(editor);
+					}
+				}
+	}));
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
