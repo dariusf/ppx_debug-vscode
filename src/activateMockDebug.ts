@@ -23,7 +23,7 @@ export function activateMockDebug(
 ) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "extension.mock-debug.runEditorContents",
+      "extension.ppx-debug.runEditorContents",
       (resource: vscode.Uri) => {
         let targetResource = resource;
         if (!targetResource && vscode.window.activeTextEditor) {
@@ -53,7 +53,7 @@ export function activateMockDebug(
       }
     ),
     vscode.commands.registerCommand(
-      "extension.mock-debug.debugEditorContents",
+      "extension.ppx-debug.debugEditorContents",
       (resource: vscode.Uri) => {
         let targetResource = resource;
         if (!targetResource && vscode.window.activeTextEditor) {
@@ -71,7 +71,7 @@ export function activateMockDebug(
       }
     ),
     vscode.commands.registerCommand(
-      "extension.mock-debug.toggleFormatting",
+      "extension.ppx-debug.toggleFormatting",
       (variable) => {
         const ds = vscode.debug.activeDebugSession;
         if (ds) {
@@ -83,7 +83,7 @@ export function activateMockDebug(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "extension.mock-debug.getProgramName",
+      "extension.ppx-debug.getProgramName",
       (config) => {
         return vscode.window.showInputBox({
           placeHolder:

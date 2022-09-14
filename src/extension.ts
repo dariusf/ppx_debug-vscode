@@ -49,13 +49,13 @@ export async function listFiles(dirPath: string, predicate?: (name: string) => b
 
 export function activate(context: vscode.ExtensionContext) {
 
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.nextInstruction", debugging.nextInstruction));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.prevInstruction", debugging.prevInstruction));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.goToInstruction", debugging.goToInstruction));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.runToHere", debugging.runToHere));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.runBackwardsToHere", debugging.runBackwardsToHere));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.togglePersistence", debugging.togglePersistence));
-	context.subscriptions.push(vscode.commands.registerCommand("extension.mock-debug.stop", debugging.stop));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.nextInstruction", debugging.nextInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.prevInstruction", debugging.prevInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.goToInstruction", debugging.goToInstruction));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.runToHere", debugging.runToHere));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.runBackwardsToHere", debugging.runBackwardsToHere));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.togglePersistence", debugging.togglePersistence));
+	context.subscriptions.push(vscode.commands.registerCommand("extension.ppx-debug.stop", debugging.stop));
 
 	context.subscriptions.push(
 		vscode.languages.registerInlayHintsProvider({scheme: 'file'}, debugging.inlayHints));
@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			"extension.mock-debug.loadTrace",
+			"extension.ppx-debug.loadTrace",
 			async (resource: vscode.Uri) => {
 				let targetResource = resource;
 				if (!targetResource && vscode.window.activeTextEditor) {

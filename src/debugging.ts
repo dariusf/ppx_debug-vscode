@@ -225,11 +225,11 @@ class MyCodeLensProvider implements vscode.CodeLensProvider {
     let pos = new vscode.Range(line, 0, line, 0)
 
     let next: vscode.Command = {
-      command: 'extension.mock-debug.nextInstruction',
+      command: 'extension.ppx-debug.nextInstruction',
       title: 'Next',
     }
     let prev: vscode.Command = {
-      command: 'extension.mock-debug.prevInstruction',
+      command: 'extension.ppx-debug.prevInstruction',
       title: 'Prev',
     }
 

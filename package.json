@@ -68,10 +68,10 @@
   "activationEvents": [
     "onDebugResolve:mock",
     "onDebugDynamicConfigurations:mock",
-    "onCommand:extension.mock-debug.getProgramName",
-    "onCommand:extension.mock-debug.runEditorContents",
-    "onCommand:extension.mock-debug.debugEditorContents",
-    "onCommand:extension.mock-debug.loadTrace"
+    "onCommand:extension.ppx-debug.getProgramName",
+    "onCommand:extension.ppx-debug.runEditorContents",
+    "onCommand:extension.ppx-debug.debugEditorContents",
+    "onCommand:extension.ppx-debug.loadTrace"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -79,104 +79,104 @@
   "contributes": {
     "keybindings":[
       {
-        "command": "extension.mock-debug.prevInstruction",
+        "command": "extension.ppx-debug.prevInstruction",
         "key": "shift+alt+cmd+left"
       },
       {
-        "command": "extension.mock-debug.nextInstruction",
+        "command": "extension.ppx-debug.nextInstruction",
         "key": "shift+alt+cmd+right"
       },
       {
-        "command": "extension.mock-debug.runToHere",
+        "command": "extension.ppx-debug.runToHere",
         "key": "shift+alt+cmd+down"
       },
       {
-        "command": "extension.mock-debug.runBackwardsToHere",
+        "command": "extension.ppx-debug.runBackwardsToHere",
         "key": "shift+alt+cmd+up"
       }
     ],
     "menus": {
       "editor/title/run": [
         {
-          "command": "extension.mock-debug.runEditorContents",
+          "command": "extension.ppx-debug.runEditorContents",
           "when": "resourceLangId == markdown",
           "group": "navigation@1"
         },
         {
-          "command": "extension.mock-debug.debugEditorContents",
+          "command": "extension.ppx-debug.debugEditorContents",
           "when": "resourceLangId == markdown",
           "group": "navigation@2"
         }
       ],
       "commandPalette": [
         {
-          "command": "extension.mock-debug.debugEditorContents",
+          "command": "extension.ppx-debug.debugEditorContents",
           "when": "resourceLangId == markdown"
         },
         {
-          "command": "extension.mock-debug.runEditorContents",
+          "command": "extension.ppx-debug.runEditorContents",
           "when": "resourceLangId == markdown"
         },
         {
-          "command": "extension.mock-debug.loadTrace"
+          "command": "extension.ppx-debug.loadTrace"
         }
       ],
       "debug/variables/context": [
         {
-          "command": "extension.mock-debug.toggleFormatting",
+          "command": "extension.ppx-debug.toggleFormatting",
           "when": "debugType == 'mock' && debugProtocolVariableMenuContext == 'simple'"
         }
       ]
     },
     "commands": [
       {
-        "command": "extension.mock-debug.debugEditorContents",
+        "command": "extension.ppx-debug.debugEditorContents",
         "title": "Debug File",
         "category": "Mock Debug",
         "enablement": "!inDebugMode",
         "icon": "$(debug-alt)"
       },
       {
-        "command": "extension.mock-debug.runEditorContents",
+        "command": "extension.ppx-debug.runEditorContents",
         "title": "Run File",
         "category": "Mock Debug",
         "enablement": "!inDebugMode",
         "icon": "$(play)"
       },
       {
-        "command": "extension.mock-debug.toggleFormatting",
+        "command": "extension.ppx-debug.toggleFormatting",
         "title": "Toggle between decimal and hex formatting"
       },
       {
-        "command": "extension.mock-debug.loadTrace",
+        "command": "extension.ppx-debug.loadTrace",
         "title": "ppx_debug: Load trace"
       },
       {
-        "command": "extension.mock-debug.nextInstruction",
+        "command": "extension.ppx-debug.nextInstruction",
         "title": "ppx_debug: Next instruction"
       },
       {
-        "command": "extension.mock-debug.prevInstruction",
+        "command": "extension.ppx-debug.prevInstruction",
         "title": "ppx_debug: Previous instruction"
       },
       {
-        "command": "extension.mock-debug.goToInstruction",
+        "command": "extension.ppx-debug.goToInstruction",
         "title": "ppx_debug: Go to point"
       },
       {
-        "command": "extension.mock-debug.runToHere",
+        "command": "extension.ppx-debug.runToHere",
         "title": "ppx_debug: Run to this point"
       },
       {
-        "command": "extension.mock-debug.runBackwardsToHere",
+        "command": "extension.ppx-debug.runBackwardsToHere",
         "title": "ppx_debug: Run backwards to this point"
       },
       {
-        "command": "extension.mock-debug.togglePersistence",
+        "command": "extension.ppx-debug.togglePersistence",
         "title": "ppx_debug: Toggle trail"
       },
       {
-        "command": "extension.mock-debug.stop",
+        "command": "extension.ppx-debug.stop",
         "title": "ppx_debug: Stop"
       }
     ],
@@ -291,7 +291,7 @@
           }
         ],
         "variables": {
-          "AskForProgramName": "extension.mock-debug.getProgramName"
+          "AskForProgramName": "extension.ppx-debug.getProgramName"
         }
       }
     ]
