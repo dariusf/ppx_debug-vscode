@@ -582,9 +582,7 @@ export async function togglePersistence() {
 
 export async function stop() {
 	// nuke hints
-	if (cumulativeHints) {
-		deleteStoredHints();
-	}
+	deleteStoredHints();
 	cumulativeHints = false;
 
 	let editor = vscode.window.activeTextEditor;
