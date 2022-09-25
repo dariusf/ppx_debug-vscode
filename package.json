@@ -2,7 +2,7 @@
   "name": "ppx-debug",
   "displayName": "ppx_debug",
   "version": "0.51.0",
-  "publisher": "ms-vscode",
+  "publisher": "dariusf",
   "description": "Debugging",
   "author": {
     "name": "Microsoft Corporation"
