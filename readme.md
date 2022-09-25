@@ -33,5 +33,5 @@ code .
 # press F5
 
 # release
-./deploy.sh
+make
 ```
