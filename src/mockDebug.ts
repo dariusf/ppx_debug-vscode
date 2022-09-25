@@ -59,6 +59,7 @@ export class MockDebugSession extends LoggingDebugSession {
 
 	private _cancellationTokens = new Map<number, boolean>();
 
+	// @ts-ignore
 	private _reportProgress = false;
 	private _progressId = 10000;
 	private _cancelledProgressId: string | undefined = undefined;
@@ -544,38 +545,7 @@ export class MockDebugSession extends LoggingDebugSession {
 
 		switch (args.context) {
 			case 'repl':
-				// handle some REPL commands:
-				// 'evaluate' supports to create and delete breakpoints from the 'repl':
-				const matches = /new +([0-9]+)/.exec(args.expression);
-				if (matches && matches.length === 2) {
-					const mbp = await this._runtime.setBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-					const bp = new Breakpoint(mbp.verified, this.convertDebuggerLineToClient(mbp.line), undefined, this.createSource(this._runtime.sourceFile)) as DebugProtocol.Breakpoint;
-					bp.id= mbp.id;
-					this.sendEvent(new BreakpointEvent('new', bp));
-					reply = `breakpoint created`;
-				} else {
-					const matches = /del +([0-9]+)/.exec(args.expression);
-					if (matches && matches.length === 2) {
-						const mbp = this._runtime.clearBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-						if (mbp) {
-							const bp = new Breakpoint(false) as DebugProtocol.Breakpoint;
-							bp.id= mbp.id;
-							this.sendEvent(new BreakpointEvent('removed', bp));
-							reply = `breakpoint deleted`;
-						}
-					} else {
-						const matches = /progress/.exec(args.expression);
-						if (matches && matches.length === 1) {
-							if (this._reportProgress) {
-								reply = `progress started`;
-								this.progressSequence();
-							} else {
-								reply = `frontend doesn't support progress (capability 'supportsProgressReporting' not set)`;
-							}
-						}
-					}
-				}
-				// fall through
+				reply = `repl`;
 
 			default:
 				if (args.expression.startsWith('$')) {
@@ -630,6 +600,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		}
 	}
 
+	// @ts-ignore
 	private async progressSequence() {
 
 		const ID = '' + this._progressId++;
@@ -751,35 +722,8 @@ export class MockDebugSession extends LoggingDebugSession {
 	}
 
 	protected disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments) {
-
-		const baseAddress = parseInt(args.memoryReference);
-		const offset = args.instructionOffset || 0;
-		const count = args.instructionCount;
-
-		const isHex = args.memoryReference.startsWith('0x');
-		const pad = isHex ? args.memoryReference.length-2 : args.memoryReference.length;
-
-		const loc = this.createSource(this._runtime.sourceFile);
-
-		let lastLine = -1;
-
-		const instructions = this._runtime.disassemble(baseAddress+offset, count).map(instruction => {
-			const address = instruction.address.toString(isHex ? 16 : 10).padStart(pad, '0');
-			const instr : DebugProtocol.DisassembledInstruction = {
-				address: isHex ? `0x${address}` : `${address}`,
-				instruction: instruction.instruction
-			};
-			// if instruction's source starts on a new line add the source to instruction
-			if (instruction.line !== undefined && lastLine !== instruction.line) {
-				lastLine = instruction.line;
-				instr.location = loc;
-				instr.line = this.convertDebuggerLineToClient(instruction.line);
-			}
-			return instr;
-		});
-
 		response.body = {
-			instructions: instructions
+			instructions: []
 		};
 		this.sendResponse(response);
 	}

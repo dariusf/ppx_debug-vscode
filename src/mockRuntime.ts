@@ -362,10 +362,12 @@ export class MockRuntime extends EventEmitter {
 
 	// private methods
 
+	// @ts-ignore
 	private getLine(line?: number): string {
     return "line";
 	}
 
+	// @ts-ignore
 	private getWords(l: number, line: string): Word[] {
 		// break line into words
 		const WORD_REGEXP = /[a-z]+/ig;
