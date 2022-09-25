@@ -14,3 +14,9 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: yarn install --frozen-lockfile
     - run: yarn test
+    - run: npm run package
+    - name: Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ppx-debug-0.51.0.vsix
+        path: ppx-debug-0.51.0.vsix
