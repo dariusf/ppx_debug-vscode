@@ -3,6 +3,8 @@
 
 This extension is able to load traces recorded using [ppx_debug](https://github.com/dariusf/ppx_debug) and provides a UI like that of an interactive debugger.
 
+https://user-images.githubusercontent.com/4328341/192141194-2ab66ece-6e52-4eb7-8623-c6ceb82afa32.mov
+
 Select `Load trace` and pick debugger.json to get started.
 
 | Keys                                                        | Action                      |
