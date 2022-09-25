@@ -5,11 +5,11 @@ This extension is able to load traces recorded using [ppx_debug](https://github.
 
 Select `Load trace` and pick debugger.json to get started.
 
-| Keys | Action |
-| --- | --- |
-| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>←</kbd> | Step back |
-| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>→</kbd> | Step forward |
-| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>↓</kbd> | Run forward to this point |
+| Keys                                                        | Action                      |
+| ----------------------------------------------------------- | --------------------------- |
+| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>←</kbd> | Step back                   |
+| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>→</kbd> | Step forward                |
+| <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>↓</kbd> | Run forward to this point   |
 | <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>↑</kbd> | Run backwards to this point |
 
 ## Installation
