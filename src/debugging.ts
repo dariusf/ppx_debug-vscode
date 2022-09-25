@@ -280,9 +280,11 @@ function highlightCurrent(editor: vscode.TextEditor) {
   }
 }
 
-function moveCursor(editor: vscode.TextEditor, pos: number) {
+function moveCursor(editor: vscode.TextEditor, line: number, col: number) {
 	const position = editor.selection.active;
-	var newPosition = position.with(pos);
+	// move cursor forward by one character so it doesn't land on an overlay, which looks buggy in vim mode.
+	// unfortunately this doesn't help with the overlay is 1-wide
+	var newPosition = position.with(line, col + 1);
 	var newSelection = new vscode.Selection(newPosition, newPosition);
 	editor.selection = newSelection;
 }
@@ -331,7 +333,10 @@ export async function updateView(editor: vscode.TextEditor) {
 	inlayHints.emitter.fire();
 
 	highlightCurrent(editor);
-	moveCursor(editor, rawData.nodes[instruction].id.loc[0][0] - 1);
+	let pos = rawData.nodes[instruction].id.loc[0];
+	let line = pos[0] - 1;
+	let col = pos[1];
+	moveCursor(editor, line, col);
 	await scrollToCursor(editor);
 }
 
