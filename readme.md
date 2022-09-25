@@ -12,6 +12,12 @@ Select `Load trace` and pick debugger.json to get started.
 | <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>↓</kbd> | Run forward to this point |
 | <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>Cmd</kbd> <kbd>↑</kbd> | Run backwards to this point |
 
+## Installation
+
+This extension is in early development, so it's not currently on the VSCode marketplace.
+
+See the [CI config](.github/workflows/ci.yml) for how to build it, or download a recent vsix from the CI artifacts.
+
 ## Development
 
 ```sh
