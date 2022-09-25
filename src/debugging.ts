@@ -3,83 +3,30 @@ import * as vscode from "vscode";
 import { FileAccessor } from "./mockRuntime";
 
 export const future1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
 	backgroundColor: { id: 'list.focusBackground' },
-			// 'red',
 	after: {
-		// contentText: 'next',
 		contentText: ' ↓',
 		fontWeight: '8px',
 		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: '$(debug-step-into)',
 	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
 });
 
 export const sibling1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
 	backgroundColor: { id: 'list.activeSelectionBackground' },
-			// 'red',
-	// { id: 'list.filterMatchBackground' }
-	// { id: 'list.dropBackground' }
 	after: {
 		contentText: ' →',
-		// contentText: 'sibling',
 		fontWeight: '8px',
 		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: 'debug-step-over',
 	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
 });
 
 export const past1 = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
 	backgroundColor: { id: 'listFilterWidget.background' },
-			// 'red',
 	after: {
-		// contentText: 'prev',
 		contentText: ' ↑',
 		fontWeight: '8px',
 		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: 'debug-step-out',
 	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
 });
 
 function rangeOfLoc(loc) {
@@ -93,14 +40,8 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
   // next line
   let node = rawData.nodes[instruction + 1];
   if (instruction < rawData.last && node) {
-    // let line = editor.document.lineAt(node.id.line-1);
-    // let dec = {
-    //   range: line.range,
-    //   hoverMessage: "next"
-    // };
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      // hoverMessage: "next"
     };
     editor.setDecorations(future1, [dec]);
     decorated.push(node.id.line);
@@ -109,13 +50,10 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
   }
 
   node = rawData.nodes[instruction - 1];
-	// let notAlreadyDecorated = decorated.indexOf(node.id.line) === -1;
 	let notAlreadyDecorated = true; // TODO
   if (instruction > 1 && node && notAlreadyDecorated) {
-    // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      // hoverMessage: "prev"
     };
     editor.setDecorations(past1, [dec]);
   } else {
@@ -124,13 +62,10 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
 
   let next_sibling = rawData.edges[instruction].next_sibling;
   node = rawData.nodes[next_sibling];
-	// notAlreadyDecorated = decorated.indexOf(node.id.line) === -1
 	notAlreadyDecorated = true; // TODO
   if (instruction < rawData.last && node && notAlreadyDecorated) {
-    // let line = editor.document.lineAt(node.id.line-1);
     let dec = {
       range: rangeOfLoc(node.id.loc),
-      // hoverMessage: "next sibling"
     };
     editor.setDecorations(sibling1, [dec]);
   } else {
@@ -140,47 +75,7 @@ export function highlightPrevNext(editor: vscode.TextEditor, rawData: any, instr
 
 // custom debugging ui
 
-// let kind = '';
-// if (rawData.nodes[instruction].content) {
-// 	kind = ' (event)'
-// } else if (rawData.nodes[instruction].args) {
-// 	kind = ' (call)'
-// }
-
-export const currentDec = vscode.window.createTextEditorDecorationType({
-	// borderWidth: '1px',
-	// borderStyle: 'solid',
-	// overviewRulerColor: 'blue',
-	// overviewRulerLane: vscode.OverviewRulerLane.Right,
-	// backgroundColor: { id: 'listFilterWidget.background' },
-	// backgroundColor: { id: 'listFilterWidget.background' },
-
-	backgroundColor: { id: 'list.focusBackground' },
-
-			// 'red',
-	after: {
-		// contentText: 'prev',
-		// contentText: ' ←a',
-		// contentText: ' <--',
-		contentText: '  <--',
-		// contentText: '>>>',
-		fontWeight: '8px',
-		color: { id: 'editorCodeLens.foreground' },
-		// color: { id: 'debugView.valueChangedHighlight' },
-		// color: { id: 'peekViewResult.matchHighlightBackground' },
-		// contentIconPath: 'debug-step-out',
-	},
-	// light: {
-	// 	// this color will be used in light color themes
-	// 	borderColor: 'darkblue'
-	// },
-	// dark: {
-	// 	// this color will be used in dark color themes
-	// 	borderColor: 'lightblue'
-	// }
-});
-
-export const currentDec1 = vscode.window.createTextEditorDecorationType({
+export const decorStart = vscode.window.createTextEditorDecorationType({
 	after: {
 		contentText: '<<<',
 		fontWeight: '8px',
@@ -188,7 +83,7 @@ export const currentDec1 = vscode.window.createTextEditorDecorationType({
 	},
 });
 
-export const currentDec2 = vscode.window.createTextEditorDecorationType({
+export const decorEnd = vscode.window.createTextEditorDecorationType({
 	after: {
 		contentText: '>>>',
 		fontWeight: '8px',
@@ -249,12 +144,9 @@ export let codelens = new MyCodeLensProvider();
 class MyHoverProvider implements vscode.HoverProvider {
 	
 	provideHover(document, position, token) {
-		// console.log('hello');
 		
 		const range = document.getWordRangeAtPosition(position);
 		const word = document.getText(range);
-		// console.log('word', rawData, instruction);
-		// console.log(rawData.nodes[instruction]);
 
 		let s : any = null;
 
@@ -263,15 +155,12 @@ class MyHoverProvider implements vscode.HoverProvider {
 		}
 
 		if (rawData.nodes[instruction].content) {
-			// console.log(rawData.nodes[instruction].content);
 			s = new vscode.MarkdownString(rawData.nodes[instruction].content);
 		} else if (rawData.nodes[instruction].args) {
 			if (rawData.nodes[instruction].args[word]) {
-				// console.log(rawData.nodes[instruction].args[word]);
 				s = new vscode.MarkdownString(rawData.nodes[instruction].args[word]);
 			}
 		}
-		// console.log('done');
 
 		if (s) {
 			s.supportHtml = true;
@@ -287,7 +176,6 @@ let cumulativeHints = false;
 let storedHints = {};
 
 function storeHint([pos, text]: [vscode.Position, string]) {
-	// pos: vscode.Position, text: string
 	let id = `${pos.line},${pos.character}`;
 	storedHints[id] = [pos, text];
 }
@@ -362,16 +250,10 @@ export let inlayHints = new MyInlayHintsProvider();
 
 class MyInlineValuesProvider implements vscode.InlineValuesProvider {
 
-	// onDidChangeInlineValues?: vscode.Event<void> | undefined;
 	provideInlineValues(document: vscode.TextDocument, viewPort: vscode.Range, context: vscode.InlineValueContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.InlineValue[]> {
-		console.log('INLINE VALUES');
-		
 		return [
-
 			new vscode.InlineValueEvaluatableExpression(new vscode.Range(new vscode.Position(30, 0), new vscode.Position(31, 0)), "EXPR"),
-
 			new vscode.InlineValueText(new vscode.Range(new vscode.Position(32, 0), new vscode.Position(33, 0)), "TEXT"),
-
 			new vscode.InlineValueVariableLookup(new vscode.Range(new vscode.Position(34, 0), new vscode.Position(35, 0)), "VAR")
 		];
 	}
@@ -380,40 +262,21 @@ class MyInlineValuesProvider implements vscode.InlineValuesProvider {
 export let inlineValues = new MyInlineValuesProvider();
 
 function highlightCurrent(editor: vscode.TextEditor) {
-  // let decorated: number[] = [];
 
   let node = rawData.nodes[instruction];
   if (node) {
-    // let line = editor.document.lineAt(node.id.line-1);
-    // let dec = {
-    //   range: rangeOfLoc(node.id.loc),
-    //   // hoverMessage: "next"
-    // };
-    // editor.setDecorations(currentDec, [dec]);
-
 		let span = rangeOfLoc(node.id.loc);
-
-    // let dec1 = {
-    //   range: new vscode.Range(span.start, editor.document.positionAt(editor.document.offsetAt(span.start)+1))
-    // };
-    // let dec2 = {
-    //   range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.end)-1), span.end)
-    // };
-    // editor.setDecorations(currentDec, [dec1, dec2]);
-    // decorated.push(node.id.line);
-
     let dec1 = {
       range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.start)-1), span.start)
     };
     let dec2 = {
       range: new vscode.Range(editor.document.positionAt(editor.document.offsetAt(span.end)-1), span.end)
     };
-    editor.setDecorations(currentDec1, [dec1]);
-    editor.setDecorations(currentDec2, [dec2]);
+    editor.setDecorations(decorStart, [dec1]);
+    editor.setDecorations(decorEnd, [dec2]);
   } else {
-    // editor.setDecorations(currentDec, []);
-    editor.setDecorations(currentDec1, []);
-    editor.setDecorations(currentDec2, []);
+    editor.setDecorations(decorStart, []);
+    editor.setDecorations(decorEnd, []);
   }
 }
 
@@ -466,10 +329,8 @@ export async function updateView(editor: vscode.TextEditor) {
 	codelens.onDidChangeCodeLensesEmitter.fire();
 	computeHints(editor.document);
 	inlayHints.emitter.fire();
-	// console.log('fired');
 
 	highlightCurrent(editor);
-	// moveCursor(editor, rawData.nodes[instruction].id.line - 1);
 	moveCursor(editor, rawData.nodes[instruction].id.loc[0][0] - 1);
 	await scrollToCursor(editor);
 }
@@ -516,13 +377,12 @@ export async function runToHere() {
 		let range = rangeOfLoc(rawData.nodes[instruction].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
-		// this doesn't work well presumably because not every event is dispatched
+
 		if (cumulativeHints) {
-			// await nextInstruction();
 			computeHints(editor.document);
 		}
+
 		if (start <= cursor && cursor <= end) {
-			// instruction = i;
 			await updateView(editor);
 			await vscode.window.showInformationMessage(`Ran forward to ${instruction}`);
 			return;
@@ -544,12 +404,12 @@ export async function runBackwardsToHere() {
 		let range = rangeOfLoc(rawData.nodes[instruction].id.loc);
 		let start = editor.document.offsetAt(range.start);
 		let end = editor.document.offsetAt(range.end);
+
 		if (cumulativeHints) {
-			// await prevInstruction();
 			computeHints(editor.document);
 		}
+
 		if (start <= cursor && cursor <= end) {
-			// instruction = i;
 			await updateView(editor);
 			await vscode.window.showInformationMessage(`Ran backwards to ${instruction}`);
 			return;
@@ -565,8 +425,6 @@ export async function togglePersistence() {
 		deleteStoredHints();
 	}
 	cumulativeHints = !cumulativeHints;
-	// console.log('cumulativeHints', cumulativeHints);
-	// inlayHints.emitter.fire();
 
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
@@ -595,8 +453,8 @@ export async function stop() {
 	await updateView(editor);
 
 	// then hide the decoration
-	editor.setDecorations(currentDec1, []);
-	editor.setDecorations(currentDec2, []);
+	editor.setDecorations(decorStart, []);
+	editor.setDecorations(decorEnd, []);
 
 	// the trace is actually still loaded; try to go to the next node
 }

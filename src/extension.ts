@@ -68,15 +68,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider({scheme: 'file'}, debugging.hover));
-// 'ocaml'
-// {scheme: 'file'}
-// console.log('registered hover');
 
 	let enableCodeLens = false;
 	if (enableCodeLens) {
 		context.subscriptions.push(
 			vscode.languages.registerCodeLensProvider(
-		// language: 'javascript',
 				{ scheme: 'file' },
 				debugging.codelens));
 	}
